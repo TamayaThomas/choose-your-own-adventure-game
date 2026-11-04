@@ -272,4 +272,135 @@ public class MessagesTests
         messages.ReadDictionary();
         Assert.AreEqual("Fighter", messages.NormalizeOccupation("FIGHTER"));
     }
+
+    // ----- Tests for the constructor and ReadDictionary fixes -----
+
+    // Writes JSON to a temp file and returns its path, for tests that need a custom language file.
+    private static string WriteTempLanguageFile(string json)
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"cyoa_lang_{Guid.NewGuid():N}.json");
+        File.WriteAllText(path, json);
+        return path;
+    }
+
+    [TestMethod]
+    public void TranslateRaceForDisplay_BeforeReadDictionary_ReturnsInputInsteadOfCrashing()
+    {
+        Messages messages = new Messages();
+        Assert.AreEqual("Elf", messages.TranslateRaceForDisplay("Elf"));
+    }
+
+    [TestMethod]
+    public void TranslateOccupationForDisplay_BeforeReadDictionary_ReturnsInputInsteadOfCrashing()
+    {
+        Messages messages = new Messages();
+        Assert.AreEqual("Thief", messages.TranslateOccupationForDisplay("Thief"));
+    }
+
+    [TestMethod]
+    public void TranslateWeaponForDisplay_BeforeReadDictionary_ReturnsInputInsteadOfCrashing()
+    {
+        Messages messages = new Messages();
+        Assert.AreEqual("dagger", messages.TranslateWeaponForDisplay("dagger"));
+    }
+
+    [TestMethod]
+    public void ReadDictionary_UnknownLanguage_FallsBackToEnglish()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("German");
+        messages.ReadDictionary();
+        Assert.AreEqual("English", messages.CurrentLanguage);
+        Assert.AreEqual("Welcome to Choose Your Adventure Game", messages.GetMessage("welcome"));
+    }
+
+    [TestMethod]
+    public void ReadDictionary_EmptyLanguage_FallsBackToEnglish()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("");
+        messages.ReadDictionary();
+        Assert.AreEqual("English", messages.CurrentLanguage);
+    }
+
+    [TestMethod]
+    public void ReadDictionary_LanguageNameIgnoresCase()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("spanish");
+        messages.ReadDictionary();
+        Assert.AreEqual("Spanish", messages.CurrentLanguage);
+        Assert.AreEqual("Bienvenido al Juego de Elige Tu Aventura", messages.GetMessage("welcome"));
+    }
+
+    [TestMethod]
+    public void ReadDictionary_MissingFile_ThrowsFileNotFoundWithClearMessage()
+    {
+        string missingPath = Path.Combine(Path.GetTempPath(), $"does_not_exist_{Guid.NewGuid():N}.json");
+        Messages messages = new Messages(missingPath);
+        var ex = Assert.ThrowsException<FileNotFoundException>(() => messages.ReadDictionary());
+        StringAssert.Contains(ex.Message, "language_data.json");
+    }
+
+    [TestMethod]
+    public void ReadDictionary_NoMatchingLanguageAndNoEnglish_ThrowsInvalidData()
+    {
+        string path = WriteTempLanguageFile("{ \"Spanish\": { \"dictionary\": { \"welcome\": \"Hola\" } } }");
+        try
+        {
+            Messages messages = new Messages(path);
+            messages.SetCurrentLanguage("German");
+            Assert.ThrowsException<InvalidDataException>(() => messages.ReadDictionary());
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    public void ReadDictionary_MissingTables_LoadsWhatExistsWithoutCrashing()
+    {
+        // Only "dictionary" is present; the five other tables are missing.
+        string path = WriteTempLanguageFile("{ \"English\": { \"dictionary\": { \"welcome\": \"Hi\" } } }");
+        try
+        {
+            Messages messages = new Messages(path);
+            messages.ReadDictionary();
+            Assert.AreEqual("Hi", messages.GetMessage("welcome"));
+            Assert.IsFalse(messages.IsValidRace("elf"));
+            Assert.IsFalse(messages.IsValidOccupation("thief"));
+            Assert.AreEqual("claws", messages.TranslateWeaponForDisplay("claws"));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [TestMethod]
+    public void ReadDictionary_LoadsAllSixTables()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Spanish");
+        messages.ReadDictionary();
+        Assert.AreNotEqual("[welcome]", messages.GetMessage("welcome"));          // dictionary
+        Assert.IsTrue(messages.IsValidRace("elfo"));                               // raceMap
+        Assert.IsTrue(messages.IsValidOccupation("mago"));                         // occupationMap
+        Assert.AreNotEqual("Elf", messages.TranslateRaceForDisplay("Elf"));        // displayRaceMap
+        Assert.AreNotEqual("Magician", messages.TranslateOccupationForDisplay("Magician")); // displayOccupationMap
+        Assert.AreNotEqual("claws", messages.TranslateWeaponForDisplay("claws"));  // displayWeaponMap
+    }
+
+    [TestMethod]
+    public void ReadDictionary_CalledAgainAfterLanguageChange_ReplacesOldText()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("English");
+        messages.ReadDictionary();
+        messages.SetCurrentLanguage("French");
+        messages.ReadDictionary();
+        Assert.IsFalse(messages.IsValidRace("elf"));
+        Assert.IsTrue(messages.IsValidRace("elfe"));
+    }
 }

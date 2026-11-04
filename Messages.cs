@@ -2,7 +2,10 @@ using System.Text.Json;
 
 public class Messages
 {
+    public const string DefaultLanguage = "English";
+
     public string CurrentLanguage { get; set; }
+    private readonly string _jsonPath;
     private Dictionary<string, string> _dictionary;
     private Dictionary<string, string> _raceMap;
     private Dictionary<string, string> _occupationMap;
@@ -11,11 +14,21 @@ public class Messages
     private Dictionary<string, string> _displayWeaponMap;
 
     public Messages()
+        : this(Path.Combine(AppContext.BaseDirectory, "language_data.json"))
     {
-        CurrentLanguage = "English";
+    }
+
+    // Lets tests point at a different language file.
+    public Messages(string jsonPath)
+    {
+        _jsonPath = jsonPath;
+        CurrentLanguage = DefaultLanguage;
         _dictionary = new Dictionary<string, string>();
         _raceMap = new Dictionary<string, string>();
         _occupationMap = new Dictionary<string, string>();
+        _displayRaceMap = new Dictionary<string, string>();
+        _displayOccupationMap = new Dictionary<string, string>();
+        _displayWeaponMap = new Dictionary<string, string>();
     }
 
     public void SetCurrentLanguage(string language)
@@ -25,40 +38,63 @@ public class Messages
 
     public void ReadDictionary()
     {
-        string jsonPath = Path.Combine(AppContext.BaseDirectory, "language_data.json");
-        string jsonText = File.ReadAllText(jsonPath);
+        if (!File.Exists(_jsonPath))
+            throw new FileNotFoundException(
+                $"Language file not found. Make sure language_data.json is copied to the output folder.", _jsonPath);
+
+        string jsonText = File.ReadAllText(_jsonPath);
         using JsonDocument doc = JsonDocument.Parse(jsonText);
 
-        JsonElement langSection = doc.RootElement.GetProperty(CurrentLanguage);
+        JsonElement langSection = FindLanguageSection(doc.RootElement);
 
-        _dictionary = new Dictionary<string, string>();
-        foreach (JsonProperty entry in langSection.GetProperty("dictionary").EnumerateObject())
-            _dictionary[entry.Name] = entry.Value.GetString() ?? string.Empty;
+        _dictionary = ReadSection(langSection, "dictionary");
+        _raceMap = ReadSection(langSection, "raceMap");
+        _occupationMap = ReadSection(langSection, "occupationMap");
+        _displayRaceMap = ReadSection(langSection, "displayRaceMap");
+        _displayOccupationMap = ReadSection(langSection, "displayOccupationMap");
+        _displayWeaponMap = ReadSection(langSection, "displayWeaponMap");
+    }
 
-        _raceMap = new Dictionary<string, string>();
-        foreach (JsonProperty entry in langSection.GetProperty("raceMap").EnumerateObject())
-            _raceMap[entry.Name] = entry.Value.GetString() ?? string.Empty;
+    // Finds the section for CurrentLanguage (ignoring case). If that language
+    // is not in the file, falls back to English and updates CurrentLanguage.
+    private JsonElement FindLanguageSection(JsonElement root)
+    {
+        foreach (JsonProperty language in root.EnumerateObject())
+        {
+            if (string.Equals(language.Name, CurrentLanguage, StringComparison.OrdinalIgnoreCase))
+            {
+                CurrentLanguage = language.Name;
+                return language.Value;
+            }
+        }
 
-        _occupationMap = new Dictionary<string, string>();
-        foreach (JsonProperty entry in langSection.GetProperty("occupationMap").EnumerateObject())
-            _occupationMap[entry.Name] = entry.Value.GetString() ?? string.Empty;
+        if (root.TryGetProperty(DefaultLanguage, out JsonElement fallback))
+        {
+            CurrentLanguage = DefaultLanguage;
+            return fallback;
+        }
 
-        _displayRaceMap = new Dictionary<string, string>();
-        foreach (JsonProperty entry in langSection.GetProperty("displayRaceMap").EnumerateObject())
-            _displayRaceMap[entry.Name] = entry.Value.GetString() ?? string.Empty;
+        throw new InvalidDataException(
+            $"Language file has no '{CurrentLanguage}' section and no '{DefaultLanguage}' section to fall back to.");
+    }
 
-        _displayOccupationMap = new Dictionary<string, string>();
-        foreach (JsonProperty entry in langSection.GetProperty("displayOccupationMap").EnumerateObject())
-            _displayOccupationMap[entry.Name] = entry.Value.GetString() ?? string.Empty;
+    // Reads one table from a language section. A missing table becomes empty.
+    private static Dictionary<string, string> ReadSection(JsonElement langSection, string sectionName)
+    {
+        var result = new Dictionary<string, string>();
 
-        _displayWeaponMap = new Dictionary<string, string>();
-        foreach (JsonProperty entry in langSection.GetProperty("displayWeaponMap").EnumerateObject())
-            _displayWeaponMap[entry.Name] = entry.Value.GetString() ?? string.Empty;
+        if (!langSection.TryGetProperty(sectionName, out JsonElement section))
+            return result;
+
+        foreach (JsonProperty entry in section.EnumerateObject())
+            result[entry.Name] = entry.Value.GetString() ?? string.Empty;
+
+        return result;
     }
 
     public string GetMessage(string key)
     {
-        return _dictionary.ContainsKey(key) ? _dictionary[key] : $"[{key}]";
+        return _dictionary.TryGetValue(key, out string? message) ? message : $"[{key}]";
     }
 
     public bool IsValidRace(string? input)
@@ -97,6 +133,4 @@ public class Messages
     {
         return _displayWeaponMap.TryGetValue(weaponType, out string? translated) ? translated : weaponType;
     }
-
-
 }
