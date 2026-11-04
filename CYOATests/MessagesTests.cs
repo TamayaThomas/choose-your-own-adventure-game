@@ -403,4 +403,89 @@ public class MessagesTests
         Assert.IsFalse(messages.IsValidRace("elf"));
         Assert.IsTrue(messages.IsValidRace("elfe"));
     }
+
+    // ----- Italian -----
+
+    [TestMethod]
+    public void ReadDictionary_LoadsItalianWelcomeMessage()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Italian");
+        messages.ReadDictionary();
+        Assert.AreEqual("Italian", messages.CurrentLanguage);
+        Assert.AreEqual("Benvenuto nel Gioco Scegli la Tua Avventura", messages.GetMessage("welcome"));
+    }
+
+    [TestMethod]
+    public void ReadDictionary_EveryLanguageHasEveryEnglishKey()
+    {
+        string jsonPath = Path.Combine(AppContext.BaseDirectory, "language_data.json");
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(jsonPath));
+        var english = doc.RootElement.GetProperty("English").GetProperty("dictionary");
+
+        foreach (string language in new[] { "Spanish", "French", "Italian" })
+        {
+            Messages messages = new Messages();
+            messages.SetCurrentLanguage(language);
+            messages.ReadDictionary();
+
+            foreach (var entry in english.EnumerateObject())
+                Assert.AreNotEqual($"[{entry.Name}]", messages.GetMessage(entry.Name),
+                    $"Key '{entry.Name}' is missing from the {language} dictionary.");
+        }
+    }
+
+    [TestMethod]
+    public void IsValidRace_AcceptsItalianRaceNames()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Italian");
+        messages.ReadDictionary();
+        foreach (string race in new[] { "umano", "Elfo", "NANO", "halfling" })
+            Assert.IsTrue(messages.IsValidRace(race), $"'{race}' should be a valid Italian race.");
+        Assert.IsFalse(messages.IsValidRace("human"));
+    }
+
+    [TestMethod]
+    public void NormalizeRace_ItalianInput_ReturnsEnglishCanonicalName()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Italian");
+        messages.ReadDictionary();
+        Assert.AreEqual("Dwarf", messages.NormalizeRace("Nano"));
+    }
+
+    [TestMethod]
+    public void NormalizeOccupation_ItalianInput_ReturnsEnglishCanonicalName()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Italian");
+        messages.ReadDictionary();
+        Assert.AreEqual("Fighter", messages.NormalizeOccupation("guerriero"));
+        Assert.AreEqual("Magician", messages.NormalizeOccupation("Mago"));
+        Assert.AreEqual("Thief", messages.NormalizeOccupation("LADRO"));
+        Assert.AreEqual("Archer", messages.NormalizeOccupation("arciere"));
+    }
+
+    [TestMethod]
+    public void TranslateForDisplay_ItalianShowsItalianNames()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Italian");
+        messages.ReadDictionary();
+        Assert.AreEqual("Umano", messages.TranslateRaceForDisplay("Human"));
+        Assert.AreEqual("Arciere", messages.TranslateOccupationForDisplay("Archer"));
+        Assert.AreEqual("spada lunga", messages.TranslateWeaponForDisplay("long sword"));
+        Assert.AreEqual("artigli", messages.TranslateWeaponForDisplay("claws"));
+    }
+
+    [TestMethod]
+    public void GetMessage_ItalianFormatStringsKeepPlaceholders()
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("Italian");
+        messages.ReadDictionary();
+        string result = string.Format(messages.GetMessage("dragon_attack_intro"), "Smolderfang", "Marco", "artigli");
+        Assert.AreEqual("Smolderfang attacca Marco con artigli!", result);
+    }
 }
