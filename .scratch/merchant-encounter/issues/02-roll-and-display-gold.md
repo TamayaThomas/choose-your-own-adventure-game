@@ -8,9 +8,9 @@ See the parent spec: `.scratch/merchant-encounter/spec.md`.
 
 **Status:** ready-for-agent
 
-- [ ] Character creation shows a Gold "roll" prompt right after the health roll; invalid input shows the existing roll-invalid message and asks again.
-- [ ] Gold is set to d20 × 10 through a public roll operation on the Player.
-- [ ] The Player stats screen shows a Gold line. The combat stats screen does not show Gold.
-- [ ] The Gold roll prompt and Gold stat label exist in English, Spanish, and French (Spanish and French without accents, following the existing language data).
-- [ ] Tests: the Gold roll always gives a value from 10 to 200 that is a multiple of 10 (sampled over many rolls).
-- [ ] Tests: every new message key resolves in all three languages (the result is not `[key]`).
+- [x] Character creation shows a Gold "roll" prompt right after the health roll; invalid input shows the existing roll-invalid message and asks again.
+- [x] Gold is set to d20 × 10 through a public roll operation on the Player.
+- [x] The Player stats screen shows a Gold line. The combat stats screen does not show Gold.
+- [x] The Gold roll prompt and Gold stat label exist in English, Spanish, and French (Spanish and French without accents, following the existing language data).
+- [x] Tests: the Gold roll always gives a value from 10 to 200 that is a multiple of 10 (sampled over many rolls).
+- [x] Tests: every new message key resolves in all three languages (the result is not `[key]`).

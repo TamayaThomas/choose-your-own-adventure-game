@@ -52,6 +52,20 @@ public class PlayerTests
     }
 
     [TestMethod]
+    public void RollGold_AlwaysGivesMultipleOfTenFrom10To200()
+    {
+        Player player = new Player();
+
+        for (int i = 0; i < 1000; i++)
+        {
+            player.RollGold();
+
+            Assert.IsTrue(player.Gold >= 10 && player.Gold <= 200, $"Gold {player.Gold} out of range.");
+            Assert.AreEqual(0, player.Gold % 10, $"Gold {player.Gold} is not a multiple of 10.");
+        }
+    }
+
+    [TestMethod]
     public void TakeDamage_AtOrBelowProtection_TakesNoDamage()
     {
         Player player = new Player { HealthPoints = 20, Protection = 3 };

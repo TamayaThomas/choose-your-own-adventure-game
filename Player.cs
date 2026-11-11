@@ -10,6 +10,7 @@ public class Player
     public int Agility { get; set; }
     public int HealthPoints { get; set; }
     public int Protection { get; set; }
+    public int Gold { get; set; }
 
     public Weapon? Weapon { get; set; }
 
@@ -24,6 +25,9 @@ public class Player
         int strengthModifier = RollStrength(messages);
         RollAgility(messages);
         RollHealthPoints(messages, strengthModifier);
+
+        PromptRoll(messages.GetMessage("roll_gold"), messages);
+        RollGold();
 
         PromptForNextAction(messages);
     }
@@ -146,12 +150,19 @@ public class Player
         Console.WriteLine(messages.GetMessage("stats_strength") + Strength);
         Console.WriteLine(messages.GetMessage("stats_agility") + Agility);
         Console.WriteLine(messages.GetMessage("stats_health") + HealthPoints);
+        Console.WriteLine(messages.GetMessage("stats_gold") + Gold);
 
         if (Weapon != null)
         {
             Console.WriteLine(messages.GetMessage("stats_weapon") + messages.TranslateWeaponForDisplay(Weapon.Type));
             Console.WriteLine(messages.GetMessage("stats_damage") + Weapon.MaxDamage);
         }
+    }
+
+    /// <summary>Sets Gold to d20 x 10 (10 to 200).</summary>
+    public void RollGold()
+    {
+        Gold = _die.Roll(20) * 10;
     }
 
     public int RollAttack()

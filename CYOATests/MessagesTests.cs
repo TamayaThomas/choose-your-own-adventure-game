@@ -161,6 +161,23 @@ public class MessagesTests
         }
     }
 
+    [DataTestMethod]
+    [DataRow("English")]
+    [DataRow("Spanish")]
+    [DataRow("French")]
+    public void ReadDictionary_GoldKeysExistInEachLanguage(string language)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        foreach (string key in new[] { "roll_gold", "stats_gold" })
+        {
+            string result = messages.GetMessage(key);
+            Assert.AreNotEqual($"[{key}]", result, $"Key '{key}' is missing from {language} dictionary.");
+        }
+    }
+
     // --- IsValidRace ---
 
     [TestMethod]
