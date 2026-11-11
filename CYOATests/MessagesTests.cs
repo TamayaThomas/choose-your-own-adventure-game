@@ -178,6 +178,49 @@ public class MessagesTests
         }
     }
 
+    [DataTestMethod]
+    [DataRow("English")]
+    [DataRow("Spanish")]
+    [DataRow("French")]
+    public void ReadDictionary_MerchantKeysExistInEachLanguage(string language)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        string[] keys = { "merchant_narrative", "merchant_gold", "merchant_menu_weapon",
+                          "merchant_menu_leave", "merchant_sold_out_tag", "merchant_weapon_purchased",
+                          "merchant_not_enough_gold", "merchant_sold_out", "merchant_leave" };
+
+        foreach (string key in keys)
+        {
+            string result = messages.GetMessage(key);
+            Assert.AreNotEqual($"[{key}]", result, $"Key '{key}' is missing from {language} dictionary.");
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow("English", "magical long sword", "magical long sword")]
+    [DataRow("English", "magical lightning bolt spell", "magical lightning bolt spell")]
+    [DataRow("English", "magical dagger", "magical dagger")]
+    [DataRow("English", "magical long bow", "magical long bow")]
+    [DataRow("Spanish", "magical long sword", "espada larga magica")]
+    [DataRow("Spanish", "magical lightning bolt spell", "hechizo de rayo magico")]
+    [DataRow("Spanish", "magical dagger", "daga magica")]
+    [DataRow("Spanish", "magical long bow", "arco largo magico")]
+    [DataRow("French", "magical long sword", "epee longue magique")]
+    [DataRow("French", "magical lightning bolt spell", "sort d'eclair magique")]
+    [DataRow("French", "magical dagger", "dague magique")]
+    [DataRow("French", "magical long bow", "arc long magique")]
+    public void TranslateWeaponForDisplay_TranslatesMagicalWeapons(string language, string weaponType, string expected)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        Assert.AreEqual(expected, messages.TranslateWeaponForDisplay(weaponType));
+    }
+
     // --- IsValidRace ---
 
     [TestMethod]

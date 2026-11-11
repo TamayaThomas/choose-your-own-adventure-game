@@ -42,6 +42,9 @@ public class Game
                 Player player = new Player();
                 player.CreateCharacter(messages);
 
+                // Once per adventure, so Sold Out lasts across repeat trips south.
+                Merchant merchant = new Merchant(player);
+
                 bool inAdventureMenu = true;
                 while (inAdventureMenu)
                 {
@@ -55,7 +58,7 @@ public class Game
                     }
                     else if (selectedPath == "south")
                     {
-                        Console.WriteLine(messages.GetMessage("south_path_narrative"));
+                        HandleMerchantEncounter(player, merchant, messages);
                     }
                     else if (selectedPath == "north")
                     {
@@ -130,6 +133,52 @@ public class Game
                 return "exit";
 
             Console.WriteLine(messages.GetMessage("path_invalid"));
+        }
+    }
+
+    private void HandleMerchantEncounter(Player player, Merchant merchant, Messages messages)
+    {
+        Console.WriteLine(messages.GetMessage("merchant_narrative"));
+
+        while (true)
+        {
+            Console.WriteLine(string.Format(messages.GetMessage("merchant_gold"), player.Gold));
+
+            string weaponLine = string.Format(messages.GetMessage("merchant_menu_weapon"),
+                Merchant.MagicalWeaponDamageBonus, Merchant.MagicalWeaponPrice);
+            if (merchant.IsMagicalWeaponSoldOut)
+                weaponLine += messages.GetMessage("merchant_sold_out_tag");
+            Console.WriteLine(weaponLine);
+            Console.WriteLine(messages.GetMessage("merchant_menu_leave"));
+
+            Console.Write(messages.GetMessage("enter_choice"));
+            string? input = Console.ReadLine()?.Trim();
+
+            if (input == "1")
+            {
+                switch (merchant.BuyMagicalWeapon())
+                {
+                    case PurchaseResult.Purchased:
+                        Console.WriteLine(string.Format(messages.GetMessage("merchant_weapon_purchased"),
+                            messages.TranslateWeaponForDisplay(player.Weapon?.Type ?? "")));
+                        break;
+                    case PurchaseResult.NotEnoughGold:
+                        Console.WriteLine(messages.GetMessage("merchant_not_enough_gold"));
+                        break;
+                    case PurchaseResult.SoldOut:
+                        Console.WriteLine(messages.GetMessage("merchant_sold_out"));
+                        break;
+                }
+            }
+            else if (input == "2")
+            {
+                Console.WriteLine(messages.GetMessage("merchant_leave"));
+                return;
+            }
+            else
+            {
+                Console.WriteLine(messages.GetMessage("invalid"));
+            }
         }
     }
 
