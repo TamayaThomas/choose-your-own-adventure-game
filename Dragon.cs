@@ -93,10 +93,7 @@ public class Dragon
         }
 
         int damage = RollDamage();
-        player.HealthPoints -= damage;
-
-        if (player.HealthPoints < 0)
-            player.HealthPoints = 0;
+        player.TakeDamage(damage);
 
         output.Add(string.Format(messages.GetMessage("dragon_damage_dealt"), Name, damage));
         output.Add(string.Format(messages.GetMessage("player_health_now"), player.Name, player.HealthPoints));

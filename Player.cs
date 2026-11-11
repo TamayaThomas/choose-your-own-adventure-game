@@ -9,6 +9,7 @@ public class Player
     public int Strength { get; set; }
     public int Agility { get; set; }
     public int HealthPoints { get; set; }
+    public int Protection { get; set; }
 
     public Weapon? Weapon { get; set; }
 
@@ -156,6 +157,17 @@ public class Player
     public int RollAttack()
     {
         return _die.Roll(20);
+    }
+
+    /// <summary>
+    /// Applies a hit after Protection. Returns the damage after Protection
+    /// (never below 0), not capped by remaining health; health floors at 0.
+    /// </summary>
+    public int TakeDamage(int rawDamage)
+    {
+        int damageTaken = Math.Max(0, rawDamage - Protection);
+        HealthPoints = Math.Max(0, HealthPoints - damageTaken);
+        return damageTaken;
     }
 
     public bool AttackHits(int attackRoll)
