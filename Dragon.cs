@@ -92,10 +92,20 @@ public class Dragon
             return string.Join(Environment.NewLine, output);
         }
 
-        int damage = RollDamage();
-        player.TakeDamage(damage);
+        int rawDamage = RollDamage();
+        int damageTaken = player.TakeDamage(rawDamage);
+        int absorbed = rawDamage - damageTaken;
 
-        output.Add(string.Format(messages.GetMessage("dragon_damage_dealt"), Name, damage));
+        if (damageTaken == 0 && absorbed > 0)
+        {
+            output.Add(string.Format(messages.GetMessage("armor_absorbs_blow"), player.Name));
+        }
+        else
+        {
+            output.Add(string.Format(messages.GetMessage("dragon_damage_dealt"), Name, rawDamage));
+            if (absorbed > 0)
+                output.Add(string.Format(messages.GetMessage("armor_absorbs_partial"), player.Name, absorbed));
+        }
         output.Add(string.Format(messages.GetMessage("player_health_now"), player.Name, player.HealthPoints));
 
         if (player.HealthPoints <= 0)

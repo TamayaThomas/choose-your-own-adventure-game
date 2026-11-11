@@ -150,6 +150,7 @@ public class Player
         Console.WriteLine(messages.GetMessage("stats_strength") + Strength);
         Console.WriteLine(messages.GetMessage("stats_agility") + Agility);
         Console.WriteLine(messages.GetMessage("stats_health") + HealthPoints);
+        Console.WriteLine(messages.GetMessage("stats_protection") + Protection);
         Console.WriteLine(messages.GetMessage("stats_gold") + Gold);
 
         if (Weapon != null)

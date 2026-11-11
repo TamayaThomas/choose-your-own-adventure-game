@@ -144,6 +144,12 @@ public class Game
         {
             Console.WriteLine(string.Format(messages.GetMessage("merchant_gold"), player.Gold));
 
+            string armorLine = string.Format(messages.GetMessage("merchant_menu_armor"),
+                Merchant.MagicalArmorProtection, Merchant.MagicalArmorPrice);
+            if (merchant.IsMagicalArmorSoldOut)
+                armorLine += messages.GetMessage("merchant_sold_out_tag");
+            Console.WriteLine(armorLine);
+
             string weaponLine = string.Format(messages.GetMessage("merchant_menu_weapon"),
                 Merchant.MagicalWeaponDamageBonus, Merchant.MagicalWeaponPrice);
             if (merchant.IsMagicalWeaponSoldOut)
@@ -156,21 +162,22 @@ public class Game
 
             if (input == "1")
             {
-                switch (merchant.BuyMagicalWeapon())
-                {
-                    case PurchaseResult.Purchased:
-                        Console.WriteLine(string.Format(messages.GetMessage("merchant_weapon_purchased"),
-                            messages.TranslateWeaponForDisplay(player.Weapon?.Type ?? "")));
-                        break;
-                    case PurchaseResult.NotEnoughGold:
-                        Console.WriteLine(messages.GetMessage("merchant_not_enough_gold"));
-                        break;
-                    case PurchaseResult.SoldOut:
-                        Console.WriteLine(messages.GetMessage("merchant_sold_out"));
-                        break;
-                }
+                PurchaseResult result = merchant.BuyMagicalArmor();
+                if (result == PurchaseResult.Purchased)
+                    Console.WriteLine(string.Format(messages.GetMessage("merchant_armor_purchased"), player.Protection));
+                else
+                    PrintPurchaseRefusal(result, messages);
             }
             else if (input == "2")
+            {
+                PurchaseResult result = merchant.BuyMagicalWeapon();
+                if (result == PurchaseResult.Purchased)
+                    Console.WriteLine(string.Format(messages.GetMessage("merchant_weapon_purchased"),
+                        messages.TranslateWeaponForDisplay(player.Weapon?.Type ?? "")));
+                else
+                    PrintPurchaseRefusal(result, messages);
+            }
+            else if (input == "3")
             {
                 Console.WriteLine(messages.GetMessage("merchant_leave"));
                 return;
@@ -180,6 +187,14 @@ public class Game
                 Console.WriteLine(messages.GetMessage("invalid"));
             }
         }
+    }
+
+    private static void PrintPurchaseRefusal(PurchaseResult result, Messages messages)
+    {
+        if (result == PurchaseResult.NotEnoughGold)
+            Console.WriteLine(messages.GetMessage("merchant_not_enough_gold"));
+        else if (result == PurchaseResult.SoldOut)
+            Console.WriteLine(messages.GetMessage("merchant_sold_out"));
     }
 
     private void HandleDragonEncounter(Player player, Dragon dragon, Messages messages)
