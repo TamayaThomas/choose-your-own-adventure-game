@@ -10,8 +10,6 @@ public class Game
         // Instantiate Die first (per sequence diagram)
         Die die = new Die();
 
-        Dragon dragon = new Dragon(die);
-
         // Language selection shown before Messages dictionary is loaded
         Console.WriteLine("Select language / Selecciona idioma / Choisissez la langue:");
         Console.WriteLine("1. English  2. Espanol  3. Francais");
@@ -44,6 +42,9 @@ public class Game
 
                 // Once per adventure, so Sold Out lasts across repeat trips south.
                 Merchant merchant = new Merchant(player);
+
+                // Once per adventure, so the same Dragon is met however many trips south come first.
+                Dragon dragon = new Dragon(die);
 
                 bool inAdventureMenu = true;
                 while (inAdventureMenu)
