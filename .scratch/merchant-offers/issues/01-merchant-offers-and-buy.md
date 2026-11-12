@@ -6,13 +6,13 @@ See the parent spec: `.scratch/merchant-offers/spec.md`.
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] `MerchantItem` enumeration: MagicalArmor, MagicalWeapon, HealingPotion, in menu order.
-- [ ] `Offer(MerchantItem Item, int Price, int Amount, bool IsSoldOut)` readonly record struct.
-- [ ] Merchant exposes `IReadOnlyList<Offer> Offers` (menu order, current Sold Out state) and `PurchaseResult Buy(MerchantItem)`.
-- [ ] `Buy` checks Sold Out, then Gold; a refused purchase changes nothing; an undefined item throws `ArgumentOutOfRangeException`.
-- [ ] The old `Buy…` methods and `Is…SoldOut` properties are deleted; the price and bonus constants are private; `Merchant.HealingPotionMaxRestore` is deleted and the potion's Amount comes from `Player.HealingPotionMaxRestore`.
-- [ ] Game's merchant screen reads prices, amounts, and Sold Out state from `Offers` and buys through `Buy`; its output is unchanged.
-- [ ] Merchant tests are rewritten against the new interface: data-driven tests over every item for the shared rules, plus separate tests for each item's effect, the Offers list, the both-items Gold edges, and an undefined item (see the spec's Testing Decisions).
-- [ ] All other existing tests still pass.
+- [x] `MerchantItem` enumeration: MagicalArmor, MagicalWeapon, HealingPotion, in menu order.
+- [x] `Offer(MerchantItem Item, int Price, int Amount, bool IsSoldOut)` readonly record struct.
+- [x] Merchant exposes `IReadOnlyList<Offer> Offers` (menu order, current Sold Out state) and `PurchaseResult Buy(MerchantItem)`.
+- [x] `Buy` checks Sold Out, then Gold; a refused purchase changes nothing; an undefined item throws `ArgumentOutOfRangeException`.
+- [x] The old `Buy…` methods and `Is…SoldOut` properties are deleted; the price and bonus constants are private; `Merchant.HealingPotionMaxRestore` is deleted and the potion's Amount comes from `Player.HealingPotionMaxRestore`.
+- [x] Game's merchant screen reads prices, amounts, and Sold Out state from `Offers` and buys through `Buy`; its output is unchanged.
+- [x] Merchant tests are rewritten against the new interface: data-driven tests over every item for the shared rules, plus separate tests for each item's effect, the Offers list, the both-items Gold edges, and an undefined item (see the spec's Testing Decisions).
+- [x] All other existing tests still pass.

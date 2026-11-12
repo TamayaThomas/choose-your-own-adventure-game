@@ -5,84 +5,93 @@ public enum PurchaseResult
     SoldOut
 }
 
+/// <summary>The items the Merchant sells, declared in menu order.</summary>
+public enum MerchantItem
+{
+    MagicalArmor,
+    MagicalWeapon,
+    HealingPotion
+}
+
+/// <summary>
+/// One item on the Merchant's menu. Amount is the number its menu line shows: Protection for
+/// Magical Armor, the damage bonus for the Magical Weapon, the maximum restore for a Healing Potion.
+/// </summary>
+public readonly record struct Offer(MerchantItem Item, int Price, int Amount, bool IsSoldOut);
+
 /// <summary>Trading rules for the Merchant on the south path. Never touches the console.</summary>
 public class Merchant
 {
-    public const int MagicalWeaponPrice = 75;
-    public const int MagicalWeaponDamageBonus = 4;
-    public const int MagicalArmorPrice = 75;
-    public const int MagicalArmorProtection = 3;
-    public const int HealingPotionPrice = 25;
-    public const int HealingPotionMaxRestore = Player.HealingPotionMaxRestore;
+    private const int MagicalArmorPrice = 75;
+    private const int MagicalArmorProtection = 3;
+    private const int MagicalWeaponPrice = 75;
+    private const int MagicalWeaponDamageBonus = 4;
+    private const int HealingPotionPrice = 25;
 
     private readonly Player _player;
+    private readonly HashSet<MerchantItem> _soldOut = new();
 
     public Merchant(Player player)
     {
         _player = player;
     }
 
-    public bool IsMagicalWeaponSoldOut { get; private set; }
-
-    public bool IsMagicalArmorSoldOut { get; private set; }
-
-    public bool IsHealingPotionSoldOut { get; private set; }
+    /// <summary>One Offer per item, in menu order, with its current Sold Out state.</summary>
+    public IReadOnlyList<Offer> Offers => Enum.GetValues<MerchantItem>().Select(OfferFor).ToList();
 
     /// <summary>
-    /// Gives the Player Protection, which reduces each Dragon hit that gets past their defense roll.
-    /// Checks Sold Out before Gold; a refused purchase changes nothing.
+    /// Sells the item to the Player at most once. Checks Sold Out before Gold; a refused purchase
+    /// changes nothing. Throws <see cref="ArgumentOutOfRangeException"/> for an undefined item.
     /// </summary>
-    public PurchaseResult BuyMagicalArmor()
+    public PurchaseResult Buy(MerchantItem item)
     {
-        if (IsMagicalArmorSoldOut)
+        Offer offer = OfferFor(item);
+
+        if (offer.IsSoldOut)
             return PurchaseResult.SoldOut;
 
-        if (_player.Gold < MagicalArmorPrice)
+        if (_player.Gold < offer.Price)
             return PurchaseResult.NotEnoughGold;
 
-        _player.Gold -= MagicalArmorPrice;
-        _player.Protection = MagicalArmorProtection;
-        IsMagicalArmorSoldOut = true;
+        _player.Gold -= offer.Price;
+        GiveToPlayer(item);
+        _soldOut.Add(item);
         return PurchaseResult.Purchased;
     }
 
-    /// <summary>
-    /// Enchants the Player's own weapon: higher maximum damage and its magical name, same art.
-    /// Checks Sold Out before Gold; a refused purchase changes nothing.
-    /// </summary>
-    public PurchaseResult BuyMagicalWeapon()
+    private Offer OfferFor(MerchantItem item)
     {
-        if (IsMagicalWeaponSoldOut)
-            return PurchaseResult.SoldOut;
-
-        if (_player.Gold < MagicalWeaponPrice)
-            return PurchaseResult.NotEnoughGold;
-
-        _player.Gold -= MagicalWeaponPrice;
-        if (_player.Weapon != null)
+        bool isSoldOut = _soldOut.Contains(item);
+        return item switch
         {
-            _player.Weapon.MaxDamage += MagicalWeaponDamageBonus;
-            _player.Weapon.Type = "magical " + _player.Weapon.Type;
-        }
-        IsMagicalWeaponSoldOut = true;
-        return PurchaseResult.Purchased;
+            MerchantItem.MagicalArmor => new Offer(item, MagicalArmorPrice, MagicalArmorProtection, isSoldOut),
+            MerchantItem.MagicalWeapon => new Offer(item, MagicalWeaponPrice, MagicalWeaponDamageBonus, isSoldOut),
+            MerchantItem.HealingPotion => new Offer(item, HealingPotionPrice, Player.HealingPotionMaxRestore, isSoldOut),
+            _ => throw new ArgumentOutOfRangeException(nameof(item), item, "Not an item the Merchant sells."),
+        };
     }
 
-    /// <summary>
-    /// Gives the Player one Healing Potion, which they can drink in combat to restore Health.
-    /// Checks Sold Out before Gold; a refused purchase changes nothing.
-    /// </summary>
-    public PurchaseResult BuyHealingPotion()
+    private void GiveToPlayer(MerchantItem item)
     {
-        if (IsHealingPotionSoldOut)
-            return PurchaseResult.SoldOut;
-
-        if (_player.Gold < HealingPotionPrice)
-            return PurchaseResult.NotEnoughGold;
-
-        _player.Gold -= HealingPotionPrice;
-        _player.HealingPotions += 1;
-        IsHealingPotionSoldOut = true;
-        return PurchaseResult.Purchased;
+        switch (item)
+        {
+            case MerchantItem.MagicalArmor:
+                // Protection reduces each Dragon hit that gets past the Player's defense roll.
+                _player.Protection = MagicalArmorProtection;
+                break;
+            case MerchantItem.MagicalWeapon:
+                // Enchants the Player's own weapon: higher maximum damage and its magical name, same art.
+                if (_player.Weapon != null)
+                {
+                    _player.Weapon.MaxDamage += MagicalWeaponDamageBonus;
+                    _player.Weapon.Type = "magical " + _player.Weapon.Type;
+                }
+                break;
+            case MerchantItem.HealingPotion:
+                _player.HealingPotions += 1;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(item), item, "Not an item the Merchant sells.");
+        }
     }
 }

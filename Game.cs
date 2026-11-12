@@ -182,23 +182,10 @@ public class Game
         {
             Console.WriteLine(string.Format(messages.GetMessage("merchant_gold"), player.Gold));
 
-            string armorLine = string.Format(messages.GetMessage("merchant_menu_armor"),
-                Merchant.MagicalArmorProtection, Merchant.MagicalArmorPrice);
-            if (merchant.IsMagicalArmorSoldOut)
-                armorLine += messages.GetMessage("merchant_sold_out_tag");
-            Console.WriteLine(armorLine);
-
-            string weaponLine = string.Format(messages.GetMessage("merchant_menu_weapon"),
-                Merchant.MagicalWeaponDamageBonus, Merchant.MagicalWeaponPrice);
-            if (merchant.IsMagicalWeaponSoldOut)
-                weaponLine += messages.GetMessage("merchant_sold_out_tag");
-            Console.WriteLine(weaponLine);
-
-            string potionLine = string.Format(messages.GetMessage("merchant_menu_potion"),
-                Merchant.HealingPotionMaxRestore, Merchant.HealingPotionPrice);
-            if (merchant.IsHealingPotionSoldOut)
-                potionLine += messages.GetMessage("merchant_sold_out_tag");
-            Console.WriteLine(potionLine);
+            IReadOnlyList<Offer> offers = merchant.Offers;
+            Console.WriteLine(FormatOfferLine(offers[0], "merchant_menu_armor", messages));
+            Console.WriteLine(FormatOfferLine(offers[1], "merchant_menu_weapon", messages));
+            Console.WriteLine(FormatOfferLine(offers[2], "merchant_menu_potion", messages));
             Console.WriteLine(messages.GetMessage("merchant_menu_leave"));
 
             Console.Write(messages.GetMessage("enter_choice"));
@@ -206,7 +193,7 @@ public class Game
 
             if (input == "1")
             {
-                PurchaseResult result = merchant.BuyMagicalArmor();
+                PurchaseResult result = merchant.Buy(MerchantItem.MagicalArmor);
                 if (result == PurchaseResult.Purchased)
                     Console.WriteLine(string.Format(messages.GetMessage("merchant_armor_purchased"), player.Protection));
                 else
@@ -214,7 +201,7 @@ public class Game
             }
             else if (input == "2")
             {
-                PurchaseResult result = merchant.BuyMagicalWeapon();
+                PurchaseResult result = merchant.Buy(MerchantItem.MagicalWeapon);
                 if (result == PurchaseResult.Purchased)
                     Console.WriteLine(string.Format(messages.GetMessage("merchant_weapon_purchased"),
                         messages.TranslateWeaponForDisplay(player.Weapon?.Type ?? "")));
@@ -223,7 +210,7 @@ public class Game
             }
             else if (input == "3")
             {
-                PurchaseResult result = merchant.BuyHealingPotion();
+                PurchaseResult result = merchant.Buy(MerchantItem.HealingPotion);
                 if (result == PurchaseResult.Purchased)
                     Console.WriteLine(messages.GetMessage("merchant_potion_purchased"));
                 else
@@ -239,6 +226,14 @@ public class Game
                 Console.WriteLine(messages.GetMessage("invalid"));
             }
         }
+    }
+
+    private static string FormatOfferLine(Offer offer, string menuKey, Messages messages)
+    {
+        string line = string.Format(messages.GetMessage(menuKey), offer.Amount, offer.Price);
+        if (offer.IsSoldOut)
+            line += messages.GetMessage("merchant_sold_out_tag");
+        return line;
     }
 
     private static void PrintPurchaseRefusal(PurchaseResult result, Messages messages)
