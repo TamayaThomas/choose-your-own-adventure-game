@@ -24,6 +24,10 @@ _Avoid_: Shopkeeper, vendor, trader, shop
 The player's currency, rolled at character creation and spent only at the merchant.
 _Avoid_: Money, coins, currency
 
+**Offer**:
+An item the merchant sells, with its price and whether it is Sold Out. The merchant's menu lists its offers in a fixed order.
+_Avoid_: Listing, product, stock
+
 **Sold Out**:
 The state of a merchant item that the player has already bought; each item can be bought at most once.
 _Avoid_: Out of stock, unavailable
