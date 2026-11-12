@@ -148,5 +148,6 @@ public class Dragon
         Console.WriteLine(messages.GetMessage("stats_health") + HealthPoints);
         Console.WriteLine(messages.GetMessage("stats_weapon") + messages.TranslateWeaponForDisplay(Weapon.Type));
         Console.WriteLine(messages.GetMessage("stats_damage") + Weapon.MaxDamage);
+        Console.WriteLine(messages.GetMessage("stats_difficulty") + messages.TranslateDifficultyForDisplay(Difficulty));
     }
 }

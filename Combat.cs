@@ -128,6 +128,7 @@ public class Combat
         output.Add(messages.GetMessage("stats_health") + dragon.HealthPoints);
         output.Add(messages.GetMessage("stats_weapon") + messages.TranslateWeaponForDisplay(dragon.Weapon.Type));
         output.Add(messages.GetMessage("stats_damage") + dragon.Weapon.MaxDamage);
+        output.Add(messages.GetMessage("stats_difficulty") + messages.TranslateDifficultyForDisplay(dragon.Difficulty));
 
         return string.Join(Environment.NewLine, output);
     }

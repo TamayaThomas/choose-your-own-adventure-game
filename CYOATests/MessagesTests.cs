@@ -269,7 +269,7 @@ public class MessagesTests
         messages.ReadDictionary();
 
         string[] keys = { "difficulty_prompt", "difficulty_easy", "difficulty_normal",
-                          "difficulty_hard", "difficulty_chosen" };
+                          "difficulty_hard", "difficulty_chosen", "stats_difficulty" };
 
         foreach (string key in keys)
         {

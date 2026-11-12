@@ -145,20 +145,13 @@ public class Game
             if (choice is Difficulty difficulty)
             {
                 Console.WriteLine(string.Format(messages.GetMessage("difficulty_chosen"),
-                    messages.GetMessage(DifficultyNameKey(difficulty))));
+                    messages.TranslateDifficultyForDisplay(difficulty)));
                 return difficulty;
             }
 
             Console.WriteLine(messages.GetMessage("invalid"));
         }
     }
-
-    private static string DifficultyNameKey(Difficulty difficulty) => difficulty switch
-    {
-        Difficulty.Easy => "difficulty_easy",
-        Difficulty.Hard => "difficulty_hard",
-        _ => "difficulty_normal"
-    };
 
     private string PromptForPath(Messages messages)
     {

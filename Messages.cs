@@ -98,5 +98,15 @@ public class Messages
         return _displayWeaponMap.TryGetValue(weaponType, out string? translated) ? translated : weaponType;
     }
 
+    public string TranslateDifficultyForDisplay(Difficulty difficulty)
+    {
+        return GetMessage(difficulty switch
+        {
+            Difficulty.Easy => "difficulty_easy",
+            Difficulty.Hard => "difficulty_hard",
+            _ => "difficulty_normal"
+        });
+    }
+
 
 }

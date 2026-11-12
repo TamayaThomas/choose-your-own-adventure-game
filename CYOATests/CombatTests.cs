@@ -130,6 +130,24 @@ public class CombatTests
         StringAssert.Contains(result, dragon.Weapon.MaxDamage.ToString());
     }
 
+    [DataTestMethod]
+    [DataRow("English", Difficulty.Easy, "Difficulty: Easy")]
+    [DataRow("English", Difficulty.Normal, "Difficulty: Normal")]
+    [DataRow("Spanish", Difficulty.Hard, "Dificultad: Dificil")]
+    [DataRow("French", Difficulty.Hard, "Difficulte: Difficile")]
+    public void GetCombatStatsDisplay_ShowsTranslatedDifficulty(string language, Difficulty difficulty, string expectedLine)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        Combat combat = new Combat(CreateTestPlayer(), new Dragon(new Die(), difficulty), messages);
+
+        string result = combat.GetCombatStatsDisplay();
+
+        StringAssert.Contains(result, expectedLine);
+    }
+
     [TestMethod]
     public void GetCombatStatsDisplay_UsesLocalizedStatLabels()
     {
