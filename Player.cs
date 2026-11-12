@@ -9,6 +9,7 @@ public class Player
     public int Strength { get; set; }
     public int Agility { get; set; }
     public int HealthPoints { get; set; }
+    public int MaxHealth { get; set; }
     public int Protection { get; set; }
     public int Gold { get; set; }
 
@@ -24,7 +25,8 @@ public class Player
 
         int strengthModifier = RollStrength(messages);
         RollAgility(messages);
-        RollHealthPoints(messages, strengthModifier);
+        PromptRoll(messages.GetMessage("roll_health"), messages);
+        RollHealth(strengthModifier);
 
         PromptRoll(messages.GetMessage("roll_gold"), messages);
         RollGold();
@@ -119,12 +121,6 @@ public class Player
             Agility += _die.Roll(4);
     }
 
-    private void RollHealthPoints(Messages messages, int strengthModifier)
-    {
-        PromptRoll(messages.GetMessage("roll_health"), messages);
-        HealthPoints = _die.Roll(20) + strengthModifier;
-    }
-
     private void PromptForNextAction(Messages messages)
     {
         while (true)
@@ -164,6 +160,16 @@ public class Player
     public void RollGold()
     {
         Gold = _die.Roll(20) * 10;
+    }
+
+    /// <summary>
+    /// Sets Health to d20 + the strength modifier and Max Health to the same value.
+    /// Max Health is set only here; damage and healing change Health alone.
+    /// </summary>
+    public void RollHealth(int strengthModifier)
+    {
+        HealthPoints = _die.Roll(20) + strengthModifier;
+        MaxHealth = HealthPoints;
     }
 
     public int RollAttack()

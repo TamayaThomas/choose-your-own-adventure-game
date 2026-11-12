@@ -13,6 +13,7 @@ public class PlayerTests
         Assert.AreEqual(0, player.Strength);
         Assert.AreEqual(0, player.Agility);
         Assert.AreEqual(0, player.HealthPoints);
+        Assert.AreEqual(0, player.MaxHealth);
         Assert.AreEqual(0, player.Protection);
 
         Assert.IsNull(player.Weapon);
@@ -63,6 +64,39 @@ public class PlayerTests
             Assert.IsTrue(player.Gold >= 10 && player.Gold <= 200, $"Gold {player.Gold} out of range.");
             Assert.AreEqual(0, player.Gold % 10, $"Gold {player.Gold} is not a multiple of 10.");
         }
+    }
+
+    [TestMethod]
+    [DataRow(3)]
+    [DataRow(0)]
+    [DataRow(-4)]
+    public void RollHealth_SetsMaxHealthEqualToRolledHealth(int strengthModifier)
+    {
+        Player player = new Player();
+
+        for (int i = 0; i < 1000; i++)
+        {
+            player.RollHealth(strengthModifier);
+
+            Assert.IsTrue(
+                player.HealthPoints >= 1 + strengthModifier && player.HealthPoints <= 20 + strengthModifier,
+                $"Health {player.HealthPoints} out of range for modifier {strengthModifier}.");
+            Assert.AreEqual(player.HealthPoints, player.MaxHealth);
+        }
+    }
+
+    [TestMethod]
+    public void TakeDamage_LowersHealthButLeavesMaxHealthUnchanged()
+    {
+        Player player = new Player();
+        // A large modifier keeps rolled Health (26..45) above the 7 damage, so Health never floors at 0.
+        player.RollHealth(25);
+        int maxHealthBefore = player.MaxHealth;
+
+        player.TakeDamage(7);
+
+        Assert.AreEqual(maxHealthBefore - 7, player.HealthPoints);
+        Assert.AreEqual(maxHealthBefore, player.MaxHealth);
     }
 
     [TestMethod]
