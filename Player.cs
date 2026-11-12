@@ -1,5 +1,18 @@
+public enum DrinkOutcome
+{
+    Healed,
+    NoPotion,
+    AlreadyAtMaxHealth
+}
+
+/// <summary>What drinking a Healing Potion did, and how much Health it actually restored.</summary>
+public readonly record struct DrinkResult(DrinkOutcome Outcome, int HealthRestored);
+
 public class Player
 {
+    /// <summary>The most Health one Healing Potion can restore (a d8 roll).</summary>
+    public const int HealingPotionMaxRestore = 8;
+
     private readonly Die _die = new Die();
 
     public string Name { get; set; } = "";
@@ -188,6 +201,20 @@ public class Player
         int damageTaken = Math.Max(0, rawDamage - Protection);
         HealthPoints = Math.Max(0, HealthPoints - damageTaken);
         return damageTaken;
+    }
+
+    public DrinkResult DrinkHealingPotion()
+    {
+        if (HealingPotions <= 0)
+            return new DrinkResult(DrinkOutcome.NoPotion, 0);
+
+        if (HealthPoints >= MaxHealth)
+            return new DrinkResult(DrinkOutcome.AlreadyAtMaxHealth, 0);
+
+        int restored = Math.Min(_die.Roll(HealingPotionMaxRestore), MaxHealth - HealthPoints);
+        HealthPoints += restored;
+        HealingPotions -= 1;
+        return new DrinkResult(DrinkOutcome.Healed, restored);
     }
 
     public bool AttackHits(int attackRoll)

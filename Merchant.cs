@@ -13,7 +13,7 @@ public class Merchant
     public const int MagicalArmorPrice = 75;
     public const int MagicalArmorProtection = 3;
     public const int HealingPotionPrice = 25;
-    public const int HealingPotionMaxRestore = 8;
+    public const int HealingPotionMaxRestore = Player.HealingPotionMaxRestore;
 
     private readonly Player _player;
 

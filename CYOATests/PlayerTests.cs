@@ -100,6 +100,99 @@ public class PlayerTests
     }
 
     [TestMethod]
+    public void DrinkHealingPotion_WithNoPotion_ReturnsNoPotionAndChangesNothing()
+    {
+        Player player = new Player { HealthPoints = 5, MaxHealth = 18, HealingPotions = 0 };
+
+        DrinkResult result = player.DrinkHealingPotion();
+
+        Assert.AreEqual(DrinkOutcome.NoPotion, result.Outcome);
+        Assert.AreEqual(0, result.HealthRestored);
+        Assert.AreEqual(5, player.HealthPoints);
+        Assert.AreEqual(0, player.HealingPotions);
+    }
+
+    [TestMethod]
+    public void DrinkHealingPotion_WhenHurtWithPotion_HealsAndUsesUpThePotion()
+    {
+        Player player = new Player { HealthPoints = 5, MaxHealth = 18, HealingPotions = 1 };
+
+        DrinkResult result = player.DrinkHealingPotion();
+
+        Assert.AreEqual(DrinkOutcome.Healed, result.Outcome);
+        Assert.AreEqual(0, player.HealingPotions);
+        Assert.IsTrue(player.HealthPoints > 5, $"Health {player.HealthPoints} did not rise.");
+    }
+
+    [TestMethod]
+    public void DrinkHealingPotion_AtMaxHealthWithPotion_ReturnsAlreadyAtMaxHealthAndKeepsPotion()
+    {
+        Player player = new Player { HealthPoints = 18, MaxHealth = 18, HealingPotions = 1 };
+
+        DrinkResult result = player.DrinkHealingPotion();
+
+        Assert.AreEqual(DrinkOutcome.AlreadyAtMaxHealth, result.Outcome);
+        Assert.AreEqual(0, result.HealthRestored);
+        Assert.AreEqual(18, player.HealthPoints);
+        Assert.AreEqual(1, player.HealingPotions);
+    }
+
+    [TestMethod]
+    public void DrinkHealingPotion_AtMaxHealthWithNoPotion_ReportsNoPotionFirst()
+    {
+        Player player = new Player { HealthPoints = 18, MaxHealth = 18, HealingPotions = 0 };
+
+        DrinkResult result = player.DrinkHealingPotion();
+
+        Assert.AreEqual(DrinkOutcome.NoPotion, result.Outcome);
+        Assert.AreEqual(18, player.HealthPoints);
+    }
+
+    [TestMethod]
+    public void DrinkHealingPotion_OneBelowMaxHealth_AlwaysCapsAtMaxHealthAndRestoresOne()
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            Player player = new Player { HealthPoints = 17, MaxHealth = 18, HealingPotions = 1 };
+
+            DrinkResult result = player.DrinkHealingPotion();
+
+            Assert.AreEqual(18, player.HealthPoints);
+            Assert.AreEqual(1, result.HealthRestored);
+        }
+    }
+
+    [TestMethod]
+    public void DrinkHealingPotion_FarBelowMaxHealth_AlwaysRestoresOneToEight()
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            Player player = new Player { HealthPoints = 1, MaxHealth = 40, HealingPotions = 1 };
+
+            DrinkResult result = player.DrinkHealingPotion();
+
+            Assert.IsTrue(result.HealthRestored >= 1 && result.HealthRestored <= 8,
+                $"Restored {result.HealthRestored} out of range.");
+        }
+    }
+
+    [TestMethod]
+    [DataRow(1, 40)]
+    [DataRow(12, 18)]
+    [DataRow(17, 18)]
+    public void DrinkHealingPotion_ReturnedAmountEqualsActualChangeInHealth(int health, int maxHealth)
+    {
+        for (int i = 0; i < 1000; i++)
+        {
+            Player player = new Player { HealthPoints = health, MaxHealth = maxHealth, HealingPotions = 1 };
+
+            DrinkResult result = player.DrinkHealingPotion();
+
+            Assert.AreEqual(health + result.HealthRestored, player.HealthPoints);
+        }
+    }
+
+    [TestMethod]
     public void TakeDamage_AtOrBelowProtection_TakesNoDamage()
     {
         Player player = new Player { HealthPoints = 20, Protection = 3 };

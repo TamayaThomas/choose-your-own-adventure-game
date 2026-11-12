@@ -112,7 +112,8 @@ public class Game
         if (string.IsNullOrWhiteSpace(input)) return false;
         string trimmed = input.Trim().ToLower();
         return trimmed == "a" || trimmed == "attack" ||
-               trimmed == "r" || trimmed == "retreat";
+               trimmed == "r" || trimmed == "retreat" ||
+               trimmed == "d" || trimmed == "drink";
     }
 
     private string PromptForPath(Messages messages)
