@@ -37,6 +37,9 @@ public class Game
 
             if (choice == "1")
             {
+                // Chosen before the Player exists, and fixed for the adventure.
+                Difficulty difficulty = PromptForDifficulty(messages);
+
                 Player player = new Player();
                 player.CreateCharacter(messages);
 
@@ -44,7 +47,7 @@ public class Game
                 Merchant merchant = new Merchant(player);
 
                 // Once per adventure, so the same Dragon is met however many trips south come first.
-                Dragon dragon = new Dragon(die);
+                Dragon dragon = new Dragon(die, difficulty);
 
                 bool inAdventureMenu = true;
                 while (inAdventureMenu)
@@ -108,6 +111,20 @@ public class Game
                trimmed == "e" || trimmed == "exit";
     }
 
+    public bool IsValidDifficultyChoice(string? input)
+    {
+        return ParseDifficultyChoice(input) != null;
+    }
+
+    // The numbers are the same in every language; only the prompt is translated.
+    private static Difficulty? ParseDifficultyChoice(string? input) => input?.Trim() switch
+    {
+        "1" => Difficulty.Easy,
+        "2" => Difficulty.Normal,
+        "3" => Difficulty.Hard,
+        _ => null
+    };
+
     public bool IsValidCombatChoice(string? input)
     {
         if (string.IsNullOrWhiteSpace(input)) return false;
@@ -116,6 +133,32 @@ public class Game
                trimmed == "r" || trimmed == "retreat" ||
                trimmed == "d" || trimmed == "drink";
     }
+
+    private Difficulty PromptForDifficulty(Messages messages)
+    {
+        while (true)
+        {
+            Console.WriteLine(messages.GetMessage("difficulty_prompt"));
+            Console.Write(messages.GetMessage("enter_choice"));
+            Difficulty? choice = ParseDifficultyChoice(Console.ReadLine());
+
+            if (choice is Difficulty difficulty)
+            {
+                Console.WriteLine(string.Format(messages.GetMessage("difficulty_chosen"),
+                    messages.GetMessage(DifficultyNameKey(difficulty))));
+                return difficulty;
+            }
+
+            Console.WriteLine(messages.GetMessage("invalid"));
+        }
+    }
+
+    private static string DifficultyNameKey(Difficulty difficulty) => difficulty switch
+    {
+        Difficulty.Easy => "difficulty_easy",
+        Difficulty.Hard => "difficulty_hard",
+        _ => "difficulty_normal"
+    };
 
     private string PromptForPath(Messages messages)
     {

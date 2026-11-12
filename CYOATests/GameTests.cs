@@ -267,6 +267,32 @@ public class GameTests
         Assert.IsFalse(game.IsValidPathChoice("3"));
     }
 
+    // --- IsValidDifficultyChoice ---
+
+    [DataTestMethod]
+    [DataRow("1")]
+    [DataRow("2")]
+    [DataRow("3")]
+    [DataRow(" 2 ")]
+    public void IsValidDifficultyChoice_ReturnsTrue_ForNumberedChoices(string input)
+    {
+        Game game = new Game();
+        Assert.IsTrue(game.IsValidDifficultyChoice(input));
+    }
+
+    [DataTestMethod]
+    [DataRow("0")]
+    [DataRow("4")]
+    [DataRow("easy")]
+    [DataRow("")]
+    [DataRow("   ")]
+    [DataRow(null)]
+    public void IsValidDifficultyChoice_ReturnsFalse_ForAnythingElse(string? input)
+    {
+        Game game = new Game();
+        Assert.IsFalse(game.IsValidDifficultyChoice(input));
+    }
+
     // --- IsValidCombatChoice ---
 
     [TestMethod]

@@ -7,6 +7,9 @@ public class Dragon
     public int Agility { get; set; }
     public int HealthPoints { get; set; }
 
+    // Fixed for the whole adventure.
+    public Difficulty Difficulty { get; }
+
     // Weapon is now a real shared class in the repo.
     public Weapon Weapon { get; set; }
 
@@ -28,9 +31,10 @@ public class Dragon
     "dragon_damage_reply_4"
 };
 
-    public Dragon(Die die)
+    public Dragon(Die die, Difficulty difficulty = Difficulty.Normal)
     {
         _die = die;
+        Difficulty = difficulty;
 
         Name = "Smolderfang";
 
@@ -55,9 +59,17 @@ public class Dragon
         return attackRoll <= Strength;
     }
 
+    // Scales the claw roll by Difficulty, rounding up. Protection is
+    // subtracted afterwards, in Player.TakeDamage.
     public int RollDamage()
     {
-        return _die.Roll(Weapon.MaxDamage);
+        int roll = _die.Roll(Weapon.MaxDamage);
+        return Difficulty switch
+        {
+            Difficulty.Easy => (roll + 1) / 2,
+            Difficulty.Hard => (roll * 3 + 1) / 2,
+            _ => roll
+        };
     }
 
     public string Attack(Player player, Messages messages)

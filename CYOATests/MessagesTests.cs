@@ -259,6 +259,26 @@ public class MessagesTests
     }
 
     [DataTestMethod]
+    [DataRow("English")]
+    [DataRow("Spanish")]
+    [DataRow("French")]
+    public void ReadDictionary_DifficultyKeysExistInEachLanguage(string language)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        string[] keys = { "difficulty_prompt", "difficulty_easy", "difficulty_normal",
+                          "difficulty_hard", "difficulty_chosen" };
+
+        foreach (string key in keys)
+        {
+            string result = messages.GetMessage(key);
+            Assert.AreNotEqual($"[{key}]", result, $"Key '{key}' is missing from {language} dictionary.");
+        }
+    }
+
+    [DataTestMethod]
     [DataRow("English", "magical long sword", "magical long sword")]
     [DataRow("English", "magical lightning bolt spell", "magical lightning bolt spell")]
     [DataRow("English", "magical dagger", "magical dagger")]
