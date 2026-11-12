@@ -44,3 +44,17 @@ _Avoid_: Shield, defense gear
 **Protection**:
 The amount subtracted from each dragon hit that gets through, never reducing damage below zero. Zero when the player has no armor.
 _Avoid_: Armor class, defense (defense means the agility-based block roll)
+
+### Health
+
+**Health**:
+The player's current hit points. Dragon hits lower it (never below zero) and a Healing Potion raises it (never above Max Health).
+_Avoid_: HP, life, hit points
+
+**Max Health**:
+The health the player rolled at character creation; healing can never raise health above it.
+_Avoid_: Full health, health cap, starting health
+
+**Healing Potion**:
+A single-use item sold by the merchant that the player can drink during combat with the dragon to restore health. The player holds a count of them, not a general inventory.
+_Avoid_: Health potion, potion of healing, elixir, inventory item
