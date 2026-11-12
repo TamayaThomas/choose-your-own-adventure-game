@@ -174,7 +174,7 @@ public class Game
         }
     }
 
-    private void HandleMerchantEncounter(Player player, Merchant merchant, Messages messages)
+    internal void HandleMerchantEncounter(Player player, Merchant merchant, Messages messages)
     {
         Console.WriteLine(messages.GetMessage("merchant_narrative"));
 
@@ -182,59 +182,65 @@ public class Game
         {
             Console.WriteLine(string.Format(messages.GetMessage("merchant_gold"), player.Gold));
 
+            // The menu is numbered here, not in the translations, so it always matches the Offers.
             IReadOnlyList<Offer> offers = merchant.Offers;
-            Console.WriteLine(FormatOfferLine(offers[0], "merchant_menu_armor", messages));
-            Console.WriteLine(FormatOfferLine(offers[1], "merchant_menu_weapon", messages));
-            Console.WriteLine(FormatOfferLine(offers[2], "merchant_menu_potion", messages));
-            Console.WriteLine(messages.GetMessage("merchant_menu_leave"));
+            for (int i = 0; i < offers.Count; i++)
+                Console.WriteLine($"{i + 1}. {FormatOfferLine(offers[i], player, messages)}");
+            int leaveChoice = offers.Count + 1;
+            Console.WriteLine($"{leaveChoice}. {messages.GetMessage("merchant_menu_leave")}");
 
             Console.Write(messages.GetMessage("enter_choice"));
             string? input = Console.ReadLine()?.Trim();
 
-            if (input == "1")
+            // Only the exact menu numbers count, as on every other screen ("01" or "+1" is invalid).
+            int choice = Enumerable.Range(1, leaveChoice).FirstOrDefault(n => input == n.ToString());
+
+            if (choice == 0)
             {
-                PurchaseResult result = merchant.Buy(MerchantItem.MagicalArmor);
-                if (result == PurchaseResult.Purchased)
-                    Console.WriteLine(string.Format(messages.GetMessage("merchant_armor_purchased"), player.Protection));
-                else
-                    PrintPurchaseRefusal(result, messages);
+                Console.WriteLine(messages.GetMessage("invalid"));
             }
-            else if (input == "2")
-            {
-                PurchaseResult result = merchant.Buy(MerchantItem.MagicalWeapon);
-                if (result == PurchaseResult.Purchased)
-                    Console.WriteLine(string.Format(messages.GetMessage("merchant_weapon_purchased"),
-                        messages.TranslateWeaponForDisplay(player.Weapon?.Type ?? "")));
-                else
-                    PrintPurchaseRefusal(result, messages);
-            }
-            else if (input == "3")
-            {
-                PurchaseResult result = merchant.Buy(MerchantItem.HealingPotion);
-                if (result == PurchaseResult.Purchased)
-                    Console.WriteLine(messages.GetMessage("merchant_potion_purchased"));
-                else
-                    PrintPurchaseRefusal(result, messages);
-            }
-            else if (input == "4")
+            else if (choice == leaveChoice)
             {
                 Console.WriteLine(messages.GetMessage("merchant_leave"));
                 return;
             }
             else
             {
-                Console.WriteLine(messages.GetMessage("invalid"));
+                MerchantItem item = offers[choice - 1].Item;
+                PurchaseResult result = merchant.Buy(item);
+                if (result == PurchaseResult.Purchased)
+                    Console.WriteLine(ItemText(item, player, messages).PurchasedMessage());
+                else
+                    PrintPurchaseRefusal(result, messages);
             }
         }
     }
 
-    private static string FormatOfferLine(Offer offer, string menuKey, Messages messages)
+    private static string FormatOfferLine(Offer offer, Player player, Messages messages)
     {
+        string menuKey = ItemText(offer.Item, player, messages).MenuKey;
         string line = string.Format(messages.GetMessage(menuKey), offer.Amount, offer.Price);
         if (offer.IsSoldOut)
             line += messages.GetMessage("merchant_sold_out_tag");
         return line;
     }
+
+    /// <summary>
+    /// The one place that maps an item to its text: its menu-line key and its purchased message,
+    /// built only after the purchase so it shows the Player's new gear.
+    /// </summary>
+    private static (string MenuKey, Func<string> PurchasedMessage) ItemText(
+        MerchantItem item, Player player, Messages messages) => item switch
+    {
+        MerchantItem.MagicalArmor => ("merchant_menu_armor",
+            () => string.Format(messages.GetMessage("merchant_armor_purchased"), player.Protection)),
+        MerchantItem.MagicalWeapon => ("merchant_menu_weapon",
+            () => string.Format(messages.GetMessage("merchant_weapon_purchased"),
+                messages.TranslateWeaponForDisplay(player.Weapon?.Type ?? ""))),
+        MerchantItem.HealingPotion => ("merchant_menu_potion",
+            () => messages.GetMessage("merchant_potion_purchased")),
+        _ => throw new ArgumentOutOfRangeException(nameof(item), item, "Not an item the Merchant sells."),
+    };
 
     private static void PrintPurchaseRefusal(PurchaseResult result, Messages messages)
     {

@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="CYOATests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="language_data.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

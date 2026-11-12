@@ -417,3 +417,109 @@ public class GameTests
         Assert.IsTrue(game.IsValidCombatChoice("  a  "));
     }
 }
+
+[TestClass]
+[DoNotParallelize]
+public class GameMerchantScreenTests
+{
+    private TextReader? _originalIn;
+    private TextWriter? _originalOut;
+
+    [TestInitialize]
+    public void Setup()
+    {
+        _originalIn = Console.In;
+        _originalOut = Console.Out;
+    }
+
+    [TestCleanup]
+    public void Cleanup()
+    {
+        if (_originalIn != null)
+            Console.SetIn(_originalIn);
+
+        if (_originalOut != null)
+            Console.SetOut(_originalOut);
+    }
+
+    [DataTestMethod]
+    [DataRow("English",
+        "1. Magical Armor (Protection +3) - 75 Gold",
+        "2. Magical Weapon (Damage +4) - 75 Gold",
+        "3. Healing Potion (restores up to 8 Health) - 25 Gold",
+        "4. Leave",
+        " (sold out)")]
+    [DataRow("Spanish",
+        "1. Armadura Magica (Proteccion +3) - 75 de Oro",
+        "2. Arma Magica (Dano +4) - 75 de Oro",
+        "3. Pocion de Curacion (restaura hasta 8 puntos de Vida) - 25 de Oro",
+        "4. Salir",
+        " (agotado)")]
+    [DataRow("French",
+        "1. Armure Magique (Protection +3) - 75 Or",
+        "2. Arme Magique (Degats +4) - 75 Or",
+        "3. Potion de Soin (restaure jusqu'a 8 points de Vie) - 25 Or",
+        "4. Partir",
+        " (epuise)")]
+    public void HandleMerchantEncounter_BuyArmorThenLeave_NumbersMenuAndMarksArmorSoldOut(
+        string language, string armorLine, string weaponLine, string potionLine, string leaveLine, string soldOutTag)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        Player player = new Player { Gold = 100, Weapon = new Weapon("long sword", 12, "-)=====>") };
+        Merchant merchant = new Merchant(player);
+
+        // "1" buys Magical Armor, "4" leaves.
+        Console.SetIn(new StringReader("1\n4\n"));
+        using StringWriter writer = new StringWriter();
+        Console.SetOut(writer);
+
+        new Game().HandleMerchantEncounter(player, merchant, messages);
+
+        string[] lines = writer.ToString().Split(Environment.NewLine);
+
+        // Before the purchase: items 1-3, then Leave last.
+        int first = Array.IndexOf(lines, armorLine);
+        Assert.IsTrue(first >= 0, $"Armor line not found before purchase.\n{writer}");
+        Assert.AreEqual(weaponLine, lines[first + 1]);
+        Assert.AreEqual(potionLine, lines[first + 2]);
+        Assert.AreEqual(leaveLine, lines[first + 3]);
+
+        // After the purchase: the armor line carries the Sold Out tag, the rest are unchanged.
+        int second = Array.IndexOf(lines, armorLine + soldOutTag);
+        Assert.IsTrue(second > first, $"Sold Out armor line not found after purchase.\n{writer}");
+        Assert.AreEqual(weaponLine, lines[second + 1]);
+        Assert.AreEqual(potionLine, lines[second + 2]);
+        Assert.AreEqual(leaveLine, lines[second + 3]);
+
+        Assert.AreEqual(25, player.Gold);
+    }
+
+    [DataTestMethod]
+    [DataRow("01")]
+    [DataRow("+1")]
+    [DataRow("0")]
+    [DataRow("5")]
+    public void HandleMerchantEncounter_ChoiceNotOnTheMenu_IsInvalidAndBuysNothing(string choice)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage("English");
+        messages.ReadDictionary();
+
+        Player player = new Player { Gold = 100 };
+        Merchant merchant = new Merchant(player);
+
+        // The bad choice, then "4" leaves.
+        Console.SetIn(new StringReader(choice + "\n4\n"));
+        using StringWriter writer = new StringWriter();
+        Console.SetOut(writer);
+
+        new Game().HandleMerchantEncounter(player, merchant, messages);
+
+        StringAssert.Contains(writer.ToString(), messages.GetMessage("invalid"));
+        Assert.AreEqual(100, player.Gold);
+        Assert.AreEqual(0, player.Protection);
+    }
+}
