@@ -58,3 +58,9 @@ _Avoid_: Full health, health cap, starting health
 **Healing Potion**:
 A single-use item sold by the merchant that the player can drink during combat with the dragon to restore health. The player holds a count of them, not a general inventory.
 _Avoid_: Health potion, potion of healing, elixir, inventory item
+
+### Adventure
+
+**Difficulty**:
+The challenge level chosen at the start of each adventure, before the player is created: Easy, Normal, or Hard. It changes only how much damage the dragon deals to the player, and stays fixed for the rest of the adventure. Normal is the standard game.
+_Avoid_: Mode, game mode, level
