@@ -12,6 +12,7 @@ public class Player
     public int MaxHealth { get; set; }
     public int Protection { get; set; }
     public int Gold { get; set; }
+    public int HealingPotions { get; set; }
 
     public Weapon? Weapon { get; set; }
 
@@ -148,6 +149,7 @@ public class Player
         Console.WriteLine(messages.GetMessage("stats_health") + HealthPoints);
         Console.WriteLine(messages.GetMessage("stats_protection") + Protection);
         Console.WriteLine(messages.GetMessage("stats_gold") + Gold);
+        Console.WriteLine(messages.GetMessage("stats_healing_potions") + HealingPotions);
 
         if (Weapon != null)
         {

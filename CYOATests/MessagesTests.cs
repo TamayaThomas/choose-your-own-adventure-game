@@ -220,6 +220,25 @@ public class MessagesTests
     }
 
     [DataTestMethod]
+    [DataRow("English")]
+    [DataRow("Spanish")]
+    [DataRow("French")]
+    public void ReadDictionary_HealingPotionShopKeysExistInEachLanguage(string language)
+    {
+        Messages messages = new Messages();
+        messages.SetCurrentLanguage(language);
+        messages.ReadDictionary();
+
+        string[] keys = { "merchant_menu_potion", "merchant_potion_purchased", "stats_healing_potions" };
+
+        foreach (string key in keys)
+        {
+            string result = messages.GetMessage(key);
+            Assert.AreNotEqual($"[{key}]", result, $"Key '{key}' is missing from {language} dictionary.");
+        }
+    }
+
+    [DataTestMethod]
     [DataRow("English", "magical long sword", "magical long sword")]
     [DataRow("English", "magical lightning bolt spell", "magical lightning bolt spell")]
     [DataRow("English", "magical dagger", "magical dagger")]

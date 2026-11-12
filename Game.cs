@@ -155,6 +155,12 @@ public class Game
             if (merchant.IsMagicalWeaponSoldOut)
                 weaponLine += messages.GetMessage("merchant_sold_out_tag");
             Console.WriteLine(weaponLine);
+
+            string potionLine = string.Format(messages.GetMessage("merchant_menu_potion"),
+                Merchant.HealingPotionMaxRestore, Merchant.HealingPotionPrice);
+            if (merchant.IsHealingPotionSoldOut)
+                potionLine += messages.GetMessage("merchant_sold_out_tag");
+            Console.WriteLine(potionLine);
             Console.WriteLine(messages.GetMessage("merchant_menu_leave"));
 
             Console.Write(messages.GetMessage("enter_choice"));
@@ -178,6 +184,14 @@ public class Game
                     PrintPurchaseRefusal(result, messages);
             }
             else if (input == "3")
+            {
+                PurchaseResult result = merchant.BuyHealingPotion();
+                if (result == PurchaseResult.Purchased)
+                    Console.WriteLine(messages.GetMessage("merchant_potion_purchased"));
+                else
+                    PrintPurchaseRefusal(result, messages);
+            }
+            else if (input == "4")
             {
                 Console.WriteLine(messages.GetMessage("merchant_leave"));
                 return;

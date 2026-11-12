@@ -135,6 +135,74 @@ public class MerchantTests
     }
 
     [TestMethod]
+    public void BuyHealingPotion_WithEnoughGold_DeductsPriceAddsPotionAndReturnsPurchased()
+    {
+        Player player = PlayerWith(100);
+        Merchant merchant = new Merchant(player);
+
+        PurchaseResult result = merchant.BuyHealingPotion();
+
+        Assert.AreEqual(PurchaseResult.Purchased, result);
+        Assert.AreEqual(75, player.Gold);
+        Assert.AreEqual(1, player.HealingPotions);
+        Assert.IsTrue(merchant.IsHealingPotionSoldOut);
+    }
+
+    [TestMethod]
+    public void BuyHealingPotion_With24Gold_ReturnsNotEnoughGoldAndChangesNothing()
+    {
+        Player player = PlayerWith(24);
+        Merchant merchant = new Merchant(player);
+
+        PurchaseResult result = merchant.BuyHealingPotion();
+
+        Assert.AreEqual(PurchaseResult.NotEnoughGold, result);
+        Assert.AreEqual(24, player.Gold);
+        Assert.AreEqual(0, player.HealingPotions);
+        Assert.IsFalse(merchant.IsHealingPotionSoldOut);
+    }
+
+    [TestMethod]
+    public void BuyHealingPotion_WithExactly25Gold_SucceedsAndLeavesZero()
+    {
+        Player player = PlayerWith(25);
+        Merchant merchant = new Merchant(player);
+
+        PurchaseResult result = merchant.BuyHealingPotion();
+
+        Assert.AreEqual(PurchaseResult.Purchased, result);
+        Assert.AreEqual(0, player.Gold);
+        Assert.AreEqual(1, player.HealingPotions);
+    }
+
+    [TestMethod]
+    public void BuyHealingPotion_SecondTime_ReturnsSoldOutAndChangesNothingEvenWhenAffordable()
+    {
+        Player player = PlayerWith(200);
+        Merchant merchant = new Merchant(player);
+        merchant.BuyHealingPotion();
+
+        PurchaseResult result = merchant.BuyHealingPotion();
+
+        Assert.AreEqual(PurchaseResult.SoldOut, result);
+        Assert.AreEqual(175, player.Gold);
+        Assert.AreEqual(1, player.HealingPotions);
+        Assert.IsTrue(merchant.IsHealingPotionSoldOut);
+    }
+
+    [TestMethod]
+    public void BuyHealingPotion_DoesNotSellOutMagicalArmorOrWeapon()
+    {
+        Player player = PlayerWith(200);
+        Merchant merchant = new Merchant(player);
+
+        merchant.BuyHealingPotion();
+
+        Assert.IsFalse(merchant.IsMagicalArmorSoldOut);
+        Assert.IsFalse(merchant.IsMagicalWeaponSoldOut);
+    }
+
+    [TestMethod]
     public void BuyBothItems_WithExactly150Gold_BothSucceedAndLeaveZero()
     {
         Player player = PlayerWith(150);

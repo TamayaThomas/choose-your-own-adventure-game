@@ -12,6 +12,8 @@ public class Merchant
     public const int MagicalWeaponDamageBonus = 4;
     public const int MagicalArmorPrice = 75;
     public const int MagicalArmorProtection = 3;
+    public const int HealingPotionPrice = 25;
+    public const int HealingPotionMaxRestore = 8;
 
     private readonly Player _player;
 
@@ -23,6 +25,8 @@ public class Merchant
     public bool IsMagicalWeaponSoldOut { get; private set; }
 
     public bool IsMagicalArmorSoldOut { get; private set; }
+
+    public bool IsHealingPotionSoldOut { get; private set; }
 
     /// <summary>
     /// Gives the Player Protection, which reduces each Dragon hit that gets past their defense roll.
@@ -61,6 +65,24 @@ public class Merchant
             _player.Weapon.Type = "magical " + _player.Weapon.Type;
         }
         IsMagicalWeaponSoldOut = true;
+        return PurchaseResult.Purchased;
+    }
+
+    /// <summary>
+    /// Gives the Player one Healing Potion, which they can drink in combat to restore Health.
+    /// Checks Sold Out before Gold; a refused purchase changes nothing.
+    /// </summary>
+    public PurchaseResult BuyHealingPotion()
+    {
+        if (IsHealingPotionSoldOut)
+            return PurchaseResult.SoldOut;
+
+        if (_player.Gold < HealingPotionPrice)
+            return PurchaseResult.NotEnoughGold;
+
+        _player.Gold -= HealingPotionPrice;
+        _player.HealingPotions += 1;
+        IsHealingPotionSoldOut = true;
         return PurchaseResult.Purchased;
     }
 }
